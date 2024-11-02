@@ -1,4 +1,4 @@
-const { PORT = 5000 } = process.env;
+const { PORT = 5001} = process.env;
 
 const path = require("path");
 const app = require(path.resolve(
