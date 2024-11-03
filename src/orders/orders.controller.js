@@ -79,5 +79,12 @@ function createOrder(req, res) {
 module.exports = {
     listOrders,
     readOrder: [orderExists, readOrder],
-    createOrder,
+    // createOrder,
+    createOrder: [
+        validateOrderPost("deliverTo"),
+        validateOrderPost("mobileNumber"),
+        validateOrderPost("status"),
+        validateOrderPost("dishes"),
+        createOrder,
+    ],
 }
