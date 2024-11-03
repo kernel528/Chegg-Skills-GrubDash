@@ -29,9 +29,6 @@ function dishExists(req, res, next) {
         status: 404,
         message: `Dish does not exist ${dishId}.`
     })
-
-    // If `dishId` does not exist, send 404 response with a message containing `dishId`
-    // return res.status(404).json({ error: `Dish with ID ${dishId} not found` });
 }
 
 // Read handler /dishes/:dishId
@@ -44,7 +41,7 @@ function readDish(req, res) {
     if (dish) {
         return res.status(200).json({ data: dish });
     } else {
-        return res.status(404).json({ error: `Dish with ID ${dishId} not found` });
+        return res.status(404).json({ error: `Dish does not exist: ${dishId}.` });
     }
 }
 
@@ -52,13 +49,14 @@ function readDish(req, res) {
   POST
 */
 // Make sure POST body has required fields.
-// TODO: Update this to use validatePost(propertyName)...section 3.4.5 for hint
-function validatePost(req, res, next) {
-    const { data: { name, description, price, image_url } = {} } = req.body;
-    if (!name || !description || !price || !image_url) {
-        return res.status(400).json({ error: "Missing required fields" });
-    }
-    next();
+function validatePost(propertyName) {
+    return function (req, res, next) {
+        const { data = {} } = req.body;
+        if (data[propertyName]) {
+            return next();
+        }
+        next({ status: 400, message: `Must include a ${propertyName}` });
+    };
 }
 
 // Support POST to /dishes
@@ -80,8 +78,6 @@ function createDish(req, res) {
   PUT, Update
 */
 // Support PUT to update /dishes/:dishId
-// TODO:  Check to make sure dishId exists || 404, "Dish does not exist: ${dishId}."
-// TODO:  Check to make sure dishId matches route id || 404, "Dish id does not match route id. Dish: ${id}, Route: ${dishId}"
 function updateDish(req, res) {
     const { dishId } = req.params;
     const foundDish = dishes.find((dish) => dish.id === dishId);
@@ -93,23 +89,30 @@ function updateDish(req, res) {
     foundDish.price = price;
     foundDish.image_url = image_url;
 
-    // const dish = dishes.find((entry) => entry.id === dishId);
-
-    // if (!dishId || !foundDish) {
-    //     // Return a 404 if the Dish ID is not found
-    //     return res.status(404).json({ error: `Dish does not exist: ${dishId}` });
-    // }
-    //
-    // if (data && data.href) {
-    //     dish.href = data.href;
-    // }
-
     res.json({ data: foundDish });
+
+    // TODO:  Check to make sure dishId exists || 404, "Dish does not exist: ${dishId}."
+    // TODO:  Check to make sure dishId matches route id || 404, "Dish id does not match route id. Dish: ${id}, Route: ${dishId}"
+    // If `dishId` does not exist, send 404 response with a message containing `dishId`
+    // return res.status(404).json({ error: `Dish with ID ${dishId} not found` });
 }
 
 module.exports = {
     listDishes,
     readDish: [dishExists, readDish],
-    createDish: [validatePost, createDish],
-    updateDish: [validatePost, updateDish],
+    createDish: [
+        validatePost("name"),
+        validatePost("description"),
+        validatePost("price"),
+        validatePost("image_url"),
+        createDish
+    ],
+    // updateDish: [validatePost, updateDish],
+    updateDish: [
+        validatePost("name"),
+        validatePost("description"),
+        validatePost("price"),
+        validatePost("image_url"),
+        updateDish
+    ],
 };
