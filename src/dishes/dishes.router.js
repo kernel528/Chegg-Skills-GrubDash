@@ -1,5 +1,4 @@
 const router = require("express").Router();
-// const router = express.Router({ mergeParams: true });
 
 // TODO: Implement the /dishes routes needed to make the tests pass
 const dishesController = require("./dishes.controller");
