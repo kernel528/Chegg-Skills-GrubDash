@@ -1,4 +1,6 @@
-const router = require("express").Router();
+// const router = require("express").Router();
+const router = require("express").Router({ mergeParams: true });
+
 
 // TODO: Implement the /dishes routes needed to make the tests pass
 const dishesController = require("./dishes.controller");
@@ -16,7 +18,10 @@ router
 router
     .route("/:dishId")
     .get(dishesController.readDish)
-    .put(dishesController.updateDish)
+    .put([
+        dishesController.dishExists,
+        dishesController.updateDish
+    ])
     .all(methodNotAllowed);
 
 

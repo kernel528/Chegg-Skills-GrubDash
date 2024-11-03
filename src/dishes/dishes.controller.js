@@ -83,6 +83,15 @@ function updateDish(req, res) {
     const foundDish = dishes.find((dish) => dish.id === dishId);
     const { data: { name, description, price, image_url } = {} } = req.body;
 
+    // Check if price is provided and is a valid number
+    if (price === undefined) {
+        res.status(400).json;
+    }
+
+    if (typeof price !== "number" || price < 0) {
+        res.status(400).json;
+    }
+
     // Update the Dish
     foundDish.name = name;
     foundDish.description = description;
@@ -90,6 +99,9 @@ function updateDish(req, res) {
     foundDish.image_url = image_url;
 
     res.json({ data: foundDish });
+
+
+
 
     // TODO:  Check to make sure dishId exists || 404, "Dish does not exist: ${dishId}."
     // TODO:  Check to make sure dishId matches route id || 404, "Dish id does not match route id. Dish: ${id}, Route: ${dishId}"
@@ -114,4 +126,5 @@ module.exports = {
         validatePost("image_url"),
         updateDish
     ],
+    dishExists,
 };
