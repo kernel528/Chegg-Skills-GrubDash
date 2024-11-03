@@ -11,11 +11,13 @@ const express = require("express");
 router
     .route("/")
     .get(dishesController.listDishes)
+    .post(dishesController.createDish)
     .all(methodNotAllowed);
 
 router
     .route("/:dishId")
     .get(dishesController.readDish)
+    .put(dishesController.updateDish)
     .all(methodNotAllowed);
 
 module.exports = router;
