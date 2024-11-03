@@ -107,7 +107,6 @@ module.exports = {
         validatePost("image_url"),
         createDish
     ],
-    // updateDish: [validatePost, updateDish],
     updateDish: [
         validatePost("name"),
         validatePost("description"),
