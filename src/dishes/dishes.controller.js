@@ -100,9 +100,6 @@ function updateDish(req, res) {
 
     res.json({ data: foundDish });
 
-
-
-
     // TODO:  Check to make sure dishId exists || 404, "Dish does not exist: ${dishId}."
     // TODO:  Check to make sure dishId matches route id || 404, "Dish id does not match route id. Dish: ${id}, Route: ${dishId}"
     // If `dishId` does not exist, send 404 response with a message containing `dishId`
