@@ -48,6 +48,43 @@ function readOrder(req, res) {
 /*
   POST
 */
+// Middleware to validate the dishes array
+function validateDishes(req, res, next) {
+    const { data: { dishes } = {} } = req.body;
+
+    // Validation: Check if dishes is not an array
+    if (!Array.isArray(dishes)) {
+        return next({ status: 400, message: "Order must include at least one dish." });
+    }
+
+    // Validation: Check if dishes array is empty
+    if (dishes.length === 0) {
+        return next({ status: 400, message: "Order must include at least one dish." });
+    }
+
+    // Validate each dish's quantity
+    for (let i = 0; i < dishes.length; i++) {
+        const { quantity } = dishes[i];
+
+        // Validation: Check if quantity is missing
+        if (quantity === undefined) {
+            return next({ status: 400, message: `dish ${i} must have a quantity that is an integer greater than 0.` });
+        }
+
+        // Validation: Check if quantity is zero or less
+        if (quantity <= 0) {
+            return next({ status: 400, message: `dish ${i} must have a quantity that is an integer greater than 0.` });
+        }
+
+        // Validation: Check if quantity is not an integer
+        if (!Number.isInteger(quantity)) {
+            return next({ status: 400, message: `dish ${i} must have a quantity that is an integer greater than 0.` });
+        }
+    }
+
+    next(); // All validations passed
+}
+
 // Make sure POST body has required fields.
 function validateOrderPost(propertyName) {
     return function (req, res, next) {
@@ -85,6 +122,7 @@ module.exports = {
         validateOrderPost("mobileNumber"),
         validateOrderPost("status"),
         validateOrderPost("dishes"),
+        validateDishes,
         createOrder,
     ],
 }
