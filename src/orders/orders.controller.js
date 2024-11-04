@@ -98,7 +98,6 @@ function validateOrderPost(propertyName) {
 
 // Support POST to /orders
 // This route will save the order and respond with the newly created order info
-// TODO: Needs to support the dishes data array and validate as well.
 function createOrder(req, res) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
     const newOrder = {
@@ -112,11 +111,13 @@ function createOrder(req, res) {
     res.status(201).json({ data: newOrder });
 }
 
+/*
+  PUT, Update
+*/
 
 module.exports = {
     listOrders,
     readOrder: [orderExists, readOrder],
-    // createOrder,
     createOrder: [
         validateOrderPost("deliverTo"),
         validateOrderPost("mobileNumber"),
