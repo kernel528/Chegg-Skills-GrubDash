@@ -82,10 +82,16 @@ function createDish(req, res) {
   PUT, Update
 */
 // Support PUT to update /dishes/:dishId
-function updateDish(req, res) {
+// TODO:  Can I make this more reusable?  Perhaps add this to dishExists and call that in multiple places?
+function updateDish(req, res, next) {
     const { dishId } = req.params;
     const foundDish = dishes.find((dish) => dish.id === dishId);
-    const { data: { name, description, price, image_url } = {} } = req.body;
+    const { data: { id, name, description, price, image_url } = {} } = req.body;
+
+    // Check if the id in the request body matches the dishId from the URL
+    if (id && id !== dishId) {
+        return res.status(400).json({ error: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}` });
+    }
 
     // Check if price is provided and is a valid number
     if (price === undefined) {
@@ -121,6 +127,7 @@ module.exports = {
         validateDishPost("description"),
         validateDishPost("price"),
         validateDishPost("image_url"),
+        dishExists,
         updateDish
     ],
     dishExists,
