@@ -17,6 +17,7 @@ const listDishes = (req, res) => {
 };
 
 // Middleware to check if `dishId` exists
+// If `dishId` does not exist, send 404 response with a message containing `dishId`
 function dishExists(req, res, next) {
     const { dishId } = req.params;
     const foundDish = dishes.find((dish) => dish.id === dishId);
@@ -30,6 +31,9 @@ function dishExists(req, res, next) {
         message: `Dish does not exist ${dishId}.`
     })
 }
+
+// TODO:  Check to make sure dishId matches route id || 404, "Dish id does not match route id. Dish: ${id}, Route: ${dishId}"
+// return res.status(404).json({ error: `Dish with ID ${dishId} not found` });
 
 // Read handler /dishes/:dishId
 function readDish(req, res) {
@@ -100,10 +104,6 @@ function updateDish(req, res) {
 
     res.json({ data: foundDish });
 
-    // TODO:  Check to make sure dishId exists || 404, "Dish does not exist: ${dishId}."
-    // TODO:  Check to make sure dishId matches route id || 404, "Dish id does not match route id. Dish: ${id}, Route: ${dishId}"
-    // If `dishId` does not exist, send 404 response with a message containing `dishId`
-    // return res.status(404).json({ error: `Dish with ID ${dishId} not found` });
 }
 
 module.exports = {
