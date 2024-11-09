@@ -49,12 +49,11 @@ function validateDishPost(propertyName) {
         if (data[propertyName]) {
             return next();
         }
-        next({ status: 400, message: `Must include a ${propertyName}` });
+        next({ status: 400, message: `Dish must include a ${propertyName}` });
     };
 }
 
-// Support POST to /dishes
-// This route will save the dish and respond with the newly created dish
+// This handler will create the dish and respond with the newly created dish
 function createDish(req, res) {
     const { data: { name, description, price, image_url } = {} } = req.body;
     const newDish = {
@@ -71,7 +70,6 @@ function createDish(req, res) {
 /*
   PUT, Update
 */
-// Support PUT to update /dishes/:dishId
 function updateDish(req, res) {
     const foundDish = res.locals.dishes;
     const { data: { name, description, price, image_url } = {} } = req.body;

@@ -21,45 +21,38 @@ function orderExists(req, res, next) {
     const { orderId } = req.params;
     const foundOrder = orders.find((order) => order.id === orderId);
 
-    if (foundOrder) {
-        res.locals.orders = foundOrder; // Store the found Order ID for use in other handlers if needed
-        return next();
+    // Check if there is no matching order, then respond with 404 and error message:
+    if (!foundOrder) {
+        return res.status(404).json({
+            error: `Order does not exist ${orderId}.`
+        });
     }
-    next({
-        status: 404,
-        message: `Order does not exist ${orderId}.`
-    })
+
+    // If the order exists, attach it to res.locals for further use...
+    res.locals.orders = foundOrder; // Store the found Order ID for use in other handlers if needed
+    return next();
 }
 
 // Read handler /orders/:orderId
 function readOrder(req, res) {
-    const { orderId } = req.params;
-
-    // Find the order by `orderId` only
-    const order = orders.find((entry) => entry.id === orderId);
-
-    if (order) {
-        return res.status(200).json({ data: order });
-    } else {
-        return res.status(404).json({ error: `Order does not exist: ${orderId}.` });
-    }
-}
-
-function statusPropertyIsValid(req, res, next) {
-    const { data: { status } = {} } = req.body;
-    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-    if (status && validStatus.includes(status)) {
-        return next();
-    }
-    next({
-        status: 400,
-        message: `Value of the 'status' property must be one of ${validStatus}. Received: ${status}`,
-    });
+    const foundOrder = res.locals.orders;
+    res.status(200).json({data: foundOrder});
 }
 
 /*
   POST
 */
+// Make sure POST body has required fields.
+function validateOrderPost(propertyName) {
+    return function (req, res, next) {
+        const { data = {} } = req.body;
+        if (data[propertyName]) {
+            return next();
+        }
+        next({ status: 400, message: `Order must include a ${propertyName}` });
+    };
+}
+
 // Middleware to validate the dishes array
 function validateDishes(req, res, next) {
     const { data: { dishes } = {} } = req.body;
@@ -97,31 +90,8 @@ function validateDishes(req, res, next) {
     next(); // All validations passed
 }
 
-// Make sure POST body has required fields.
-function validateOrderPost(propertyName) {
-    return function (req, res, next) {
-        const { data = {} } = req.body;
-        if (data[propertyName]) {
-            return next();
-        }
-        next({ status: 400, message: `Must include a ${propertyName}` });
-    };
-}
-
-// Support POST to /orders
-// This route will save the order and respond with the newly created order info
-function createOrder(req, res, next) {
+function createOrder(req, res) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
-
-    // Ensure the status is valid
-    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-    if (!status || !validStatus.includes(status)) {
-        return res.status(400).json({
-            error: `Invalid status. Must be one of ${validStatus}. Received: ${status}`
-        });
-    }
-
-    // Validations passed, create new order...
     const newOrder = {
         id: nextId(),
         deliverTo,
@@ -129,14 +99,13 @@ function createOrder(req, res, next) {
         status,
         dishes
     };
-    orders.push(newOrder);
+    dishes.push(newOrder);
     res.status(201).json({ data: newOrder });
 }
 
 /*
   PUT, Update
 */
-// Support PUT to update /dishes/:dishId
 function updateOrder(req, res, next) {
     const { orderId } = req.params;
     const foundOrder = orders.find((order) => order.id === orderId);
@@ -145,6 +114,13 @@ function updateOrder(req, res, next) {
     // Check if the id in the request body matches the orderId from the URL
     if (id && id !== orderId) {
         return res.status(400).json({ error: `Order id does not match route id. Order: ${id}, Route: ${orderId}` });
+    }
+
+    // Make sure status is not missing or empty
+    if (status === undefined || status === null) {
+        res.status(400).json({
+            error: "Order must have a status of pending, preparing, out-for-delivery, delivered"
+        });
     }
 
     // Check if the order status is "delivered", if so reject updates...
@@ -158,7 +134,7 @@ function updateOrder(req, res, next) {
     const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
     if (status && !validStatus.includes(status)) {
         return res.status(400).json({
-            error: `Order must have a status of one of ${validStatus}.`
+            error: `Order must have a status of ${validStatus}.`
         });
     }
 
@@ -181,7 +157,6 @@ module.exports = {
         validateOrderPost("status"),
         validateOrderPost("dishes"),
         validateDishes,
-        statusPropertyIsValid,
         createOrder,
     ],
     updateOrder: [
@@ -191,6 +166,7 @@ module.exports = {
         validateOrderPost("mobileNumber"),
         validateOrderPost("status"),
         validateOrderPost("dishes"),
+        validateDishes,
         updateOrder
     ],
 }

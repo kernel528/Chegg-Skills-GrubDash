@@ -1,0 +1,175 @@
+: date; npm test
+Sat Nov  9 16:49:53 CST 2024
+
+> zid-be-project-grub-dash-01-qualified@1.0.0 test
+> jest
+
+ FAIL  test/dishes-router.test.js
+  ● dishes router › create method › returns 400 if price is less than zero
+
+    expect(received).toBeUndefined()
+
+    Received: {"description": "description", "id": "80fb5a8016f8b9a5c9c034f088f305f8", "image_url": "none", "name": "name", "price": -9007199254740991}
+
+      138 |         });
+      139 |
+    > 140 |       expect(response.body.data).toBeUndefined();
+          |                                  ^
+      141 |       expect(response.body.error).toContain("price");
+      142 |       expect(response.status).toBe(400);
+      143 |     });
+
+      at Object.<anonymous> (test/dishes-router.test.js:140:34)
+
+  ● dishes router › update method › returns 400 if data.id does not match :dishId in the route
+
+    expect(received).toBeUndefined()
+
+    Received: {"description": "lightly steamed in a hot water bath.", "id": "14", "image_url": "some-valid-url", "name": "Coddled Eggs", "price": 14}
+
+      247 |         });
+      248 |
+    > 249 |       expect(response.body.data).toBeUndefined();
+          |                                  ^
+      250 |       expect(response.body.error).toContain("id");
+      251 |       expect(response.body.error).toContain("19");
+      252 |       expect(response.status).toBe(400);
+
+      at Object.<anonymous> (test/dishes-router.test.js:249:34)
+
+ FAIL  test/orders-router.test.js
+  ● orders router › create method › creates a new order and assigns id
+
+    expect(received).toBeUndefined()
+
+    Received: "Order must include a status"
+
+      54 |         });
+      55 |
+    > 56 |       expect(response.body.error).toBeUndefined();
+         |                                   ^
+      57 |       expect(response.body.data).not.toBeUndefined();
+      58 |       expect(response.body.data.id).not.toBeUndefined();
+      59 |       expect(response.body.data.deliverTo).toEqual(expectedDeliverTo);
+
+      at Object.<anonymous> (test/orders-router.test.js:56:35)
+
+  ● orders router › update method › updates the order if data.id is missing, even though it does not match :orderId in the route
+
+    expect(received).toBeUndefined()
+
+    Received: "Order must include a id"
+
+      394 |         });
+      395 |
+    > 396 |       expect(response.body.error).toBeUndefined();
+          |                                   ^
+      397 |       expect(response.body.data).toEqual({ ...expected, id: "14" });
+      398 |       expect(response.status).toBe(200);
+      399 |     });
+
+      at Object.<anonymous> (test/orders-router.test.js:396:35)
+
+  ● orders router › update method › updates the order if data.id is empty, even though it does not match :orderId in the route
+
+    expect(received).toBeUndefined()
+
+    Received: "Order must include a id"
+
+      410 |         });
+      411 |
+    > 412 |       expect(response.body.error).toBeUndefined();
+          |                                   ^
+      413 |       expect(response.body.data).toEqual({ ...expected, id: "14" });
+      414 |       expect(response.status).toBe(200);
+      415 |     });
+
+      at Object.<anonymous> (test/orders-router.test.js:412:35)
+
+  ● orders router › update method › updates the order if data.id is null, even though it does not match :orderId in the route
+
+    expect(received).toBeUndefined()
+
+    Received: "Order must include a id"
+
+      426 |         });
+      427 |
+    > 428 |       expect(response.body.error).toBeUndefined();
+          |                                   ^
+      429 |       expect(response.body.data).toEqual({ ...expected, id: "14" });
+      430 |       expect(response.status).toBe(200);
+      431 |     });
+
+      at Object.<anonymous> (test/orders-router.test.js:428:35)
+
+  ● orders router › update method › updates the order if data.id is undefined, even though it does not match :orderId in the route
+
+    expect(received).toBeUndefined()
+
+    Received: "Order must include a id"
+
+      442 |         });
+      443 |
+    > 444 |       expect(response.body.error).toBeUndefined();
+          |                                   ^
+      445 |       expect(response.body.data).toEqual({ ...expected, id: "14" });
+      446 |       expect(response.status).toBe(200);
+      447 |     });
+
+      at Object.<anonymous> (test/orders-router.test.js:444:35)
+
+  ● orders router › delete method › returns 204 for existing order
+
+    expect(received).toBeUndefined()
+
+    Received: "DELETE not allowed for /orders-router/22"
+
+      758 |
+      759 |       expect(response.body.data).toBeUndefined();
+    > 760 |       expect(response.body.error).toBeUndefined();
+          |                                   ^
+      761 |       expect(response.status).toBe(204);
+      762 |
+      763 |       const deleted = await request(app)
+
+      at Object.<anonymous> (test/orders-router.test.js:760:35)
+
+  ● orders router › delete method › returns 404 for non-existent order
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 404
+    Received: 405
+
+      774 |       expect(response.body.data).toBeUndefined();
+      775 |       expect(response.body.error).toContain("23");
+    > 776 |       expect(response.status).toBe(404);
+          |                               ^
+      777 |     });
+      778 |     test("returns 400 if order.status !== 'pending'", async () => {
+      779 |       orders.push({ ...validOrder, id: "30", status: "preparing" });
+
+      at Object.<anonymous> (test/orders-router.test.js:776:31)
+
+  ● orders router › delete method › returns 400 if order.status !== 'pending'
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "pending"
+    Received string:    "DELETE not allowed for /orders-router/30"
+
+      784 |
+      785 |       expect(response.body.data).toBeUndefined();
+    > 786 |       expect(response.body.error).toContain("pending");
+          |                                   ^
+      787 |       expect(response.status).toBe(400);
+      788 |     });
+      789 |   });
+
+      at Object.<anonymous> (test/orders-router.test.js:786:35)
+
+Test Suites: 2 failed, 2 total
+Tests:       10 failed, 58 passed, 68 total
+Snapshots:   0 total
+Time:        0.792 s, estimated 1 s
+Ran all test suites.
