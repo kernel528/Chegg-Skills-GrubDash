@@ -156,8 +156,8 @@ function deleteOrder(req, res) {
 
     // If no order is found, return a 404
     if (!foundOrder) {
-        return res.status(400).json({
-            error: `An order cannot be deleted unless it is pending.`
+        return res.status(404).json({
+            error: `Order does not exist ${orderId}.`
         });
     }
 
