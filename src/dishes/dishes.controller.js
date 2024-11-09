@@ -16,37 +16,27 @@ const listDishes = (req, res) => {
     res.json({ data: dishes });
 };
 
-// Middleware to check if `dishId` exists
+// Middleware to check if `dishId` exists and matches the route id.
 // If `dishId` does not exist, send 404 response with a message containing `dishId`
 function dishExists(req, res, next) {
     const { dishId } = req.params;
     const foundDish = dishes.find((dish) => dish.id === dishId);
 
-    if (foundDish) {
-        res.locals.dishes = foundDish; // Store the found Dish ID for use in other handlers if needed
-        return next();
+    if (!foundDish) {
+        return res.status(404).json({
+            error: `Dish does not exist ${dishId}.`
+        });
     }
-    next({
-        status: 404,
-        message: `Dish does not exist ${dishId}.`
-    })
-}
 
-// TODO:  Check to make sure dishId matches route id || 404, "Dish id does not match route id. Dish: ${id}, Route: ${dishId}"
-// return res.status(404).json({ error: `Dish with ID ${dishId} not found` });
+    // If the dish exists, attach it to res.locals for further use...
+    res.locals.dishes = foundDish; // Store the found Dish ID for use in other handlers if needed
+        return next();
+}
 
 // Read handler /dishes/:dishId
 function readDish(req, res) {
-    const { dishId } = req.params;
-
-    // Find the dish by `dishId` only
-    const dish = dishes.find((entry) => entry.id === dishId);
-
-    if (dish) {
-        return res.status(200).json({ data: dish });
-    } else {
-        return res.status(404).json({ error: `Dish does not exist: ${dishId}.` });
-    }
+    const foundDish = res.locals.dishes;
+    res.status(200).json({data: foundDish});
 }
 
 /*
@@ -82,19 +72,12 @@ function createDish(req, res) {
   PUT, Update
 */
 // Support PUT to update /dishes/:dishId
-function updateDish(req, res, next) {
-    const { dishId } = req.params;
-    const foundDish = dishes.find((dish) => dish.id === dishId);
-    const { data: { id, name, description, price, image_url } = {} } = req.body;
+function updateDish(req, res) {
+    const foundDish = res.locals.dishes;
+    const { data: { name, description, price, image_url } = {} } = req.body;
 
-    // Check if the id in the request body matches the dishId from the URL
-    if (id && id !== dishId) {
-        return res.status(400).json({ error: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}` });
-    }
-
-    // TODO:  Can I make this more reusable?  Perhaps add this to validateDishPost?
-    // Check if price is provided and is a valid number
-    if (price === undefined) {
+    // Check to make sure price exists
+    if (price === undefined || price === null) {
         res.status(400).json({
             error: "Dish must include a price."
         });
