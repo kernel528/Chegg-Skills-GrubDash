@@ -145,7 +145,16 @@ function updateOrder(req, res, next) {
     foundOrder.dishes = dishes;
 
     res.json({ data: foundOrder });
+}
 
+/*
+  Delete
+*/
+function deleteOrder(req, res) {
+    const { orderId } = req.params;
+    const foundOrder = orders.find((order) => order.id === orderId);
+    const deletedOrder = orders.splice(orders.indexOf(foundOrder), 1);
+    res.status(200).json({ data: deletedOrder });
 }
 
 module.exports = {
@@ -168,5 +177,9 @@ module.exports = {
         validateOrderPost("dishes"),
         validateDishes,
         updateOrder
+    ],
+    deleteOrder: [
+        orderExists,
+        deleteOrder
     ],
 }

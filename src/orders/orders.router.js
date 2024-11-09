@@ -19,6 +19,7 @@ router
     .route("/:orderId")
     .get(ordersController.readOrder)
     .put(ordersController.updateOrder)
+    .delete(ordersController.deleteOrder)
     .all(methodNotAllowed);
 
 module.exports = router;
