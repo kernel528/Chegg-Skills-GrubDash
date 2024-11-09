@@ -8,6 +8,7 @@ const notFound = require("../errors/notFound");
 const errorHandler = require("../errors/errorHandler");
 const express = require("express");
 
+
 router
     .route("/")
     .get(ordersController.listOrders)
@@ -17,6 +18,7 @@ router
 router
     .route("/:orderId")
     .get(ordersController.readOrder)
+    .put(ordersController.updateOrder)
     .all(methodNotAllowed);
 
 module.exports = router;
