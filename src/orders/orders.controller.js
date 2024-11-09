@@ -46,14 +46,14 @@ function readOrder(req, res) {
 }
 
 function statusPropertyIsValid(req, res, next) {
-    const { data: { syntax } = {} } = req.body;
+    const { data: { status } = {} } = req.body;
     const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-    if (validStatus.includes(syntax)) {
+    if (status && validStatus.includes(status)) {
         return next();
     }
     next({
         status: 400,
-        message: `Value of the 'status' property must be one of ${validStatus}. Received: ${syntax}`,
+        message: `Value of the 'status' property must be one of ${validStatus}. Received: ${status}`,
     });
 }
 
@@ -110,8 +110,18 @@ function validateOrderPost(propertyName) {
 
 // Support POST to /orders
 // This route will save the order and respond with the newly created order info
-function createOrder(req, res) {
+function createOrder(req, res, next) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+
+    // Ensure the status is valid
+    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
+    if (!status || !validStatus.includes(status)) {
+        return res.status(400).json({
+            error: `Invalid status. Must be one of ${validStatus}. Received: ${status}`
+        });
+    }
+
+    // Validations passed, create new order...
     const newOrder = {
         id: nextId(),
         deliverTo,
@@ -137,7 +147,22 @@ function updateOrder(req, res, next) {
         return res.status(400).json({ error: `Order id does not match route id. Order: ${id}, Route: ${orderId}` });
     }
 
-    // Update the Dish
+    // Check if the order status is "delivered", if so reject updates...
+    if (foundOrder.status === "delivered") {
+        return res.status(400).json({
+            error: `A delivered order cannot be changed.`
+        });
+    }
+
+    // Ensure the status is valid, if provided...
+    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
+    if (status && !validStatus.includes(status)) {
+        return res.status(400).json({
+            error: `Order must have a status of one of ${validStatus}.`
+        });
+    }
+
+    // Validations pass, Update the Dish
     foundOrder.deliverTo = deliverTo;
     foundOrder.mobileNumber = mobileNumber;
     foundOrder.status = status;
@@ -156,6 +181,7 @@ module.exports = {
         validateOrderPost("status"),
         validateOrderPost("dishes"),
         validateDishes,
+        statusPropertyIsValid,
         createOrder,
     ],
     updateOrder: [
