@@ -153,8 +153,26 @@ function updateOrder(req, res, next) {
 function deleteOrder(req, res) {
     const { orderId } = req.params;
     const foundOrder = orders.find((order) => order.id === orderId);
-    const deletedOrder = orders.splice(orders.indexOf(foundOrder), 1);
-    res.status(200).json({ data: deletedOrder });
+
+    // If no order is found, return a 404
+    if (!foundOrder) {
+        return res.status(400).json({
+            error: `An order cannot be deleted unless it is pending.`
+        });
+    }
+
+    // Check if order status is "pending".  If not, return a 400 error.
+    if (foundOrder.status !== "pending") {
+        return res.status(400).json({
+            error: `An order cannot be deleted unless it is pending.`
+        });
+    }
+
+    // Delete the order
+    orders.splice(orders.indexOf(foundOrder), 1);
+
+    // Return a 204 status for a successful order delete
+    return res.status(204).send();
 }
 
 module.exports = {
