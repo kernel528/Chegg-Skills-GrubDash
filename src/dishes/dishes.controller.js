@@ -82,7 +82,6 @@ function createDish(req, res) {
   PUT, Update
 */
 // Support PUT to update /dishes/:dishId
-// TODO:  Can I make this more reusable?  Perhaps add this to dishExists and call that in multiple places?
 function updateDish(req, res, next) {
     const { dishId } = req.params;
     const foundDish = dishes.find((dish) => dish.id === dishId);
@@ -93,13 +92,26 @@ function updateDish(req, res, next) {
         return res.status(400).json({ error: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}` });
     }
 
+    // TODO:  Can I make this more reusable?  Perhaps add this to validateDishPost?
     // Check if price is provided and is a valid number
     if (price === undefined) {
-        res.status(400).json;
+        res.status(400).json({
+            error: "Dish must include a price."
+        });
     }
 
-    if (typeof price !== "number" || price < 0) {
-        res.status(400).json;
+    // Make sure price is greater than 0 and is an integer/number.
+    if (typeof price !== "number" || price <= 0) {
+        res.status(400).json({
+            error: "Dish must have a price that is an integer greater than 0."
+        });
+    }
+
+    // Make sure image_url isn't missing
+    if (image_url === undefined || image_url === null ) {
+        res.status(400).json({
+            error: "Dish must include an image_url."
+        });
     }
 
     // Update the Dish
