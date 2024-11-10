@@ -42,33 +42,40 @@ function orderExists(req, res, next) {
 /*
   POST
 */
-// Make sure POST body has required fields.
+
+// Middleware to validate the status property
+function validateStatus(req, res, next) {
+    const { data = {} } = req.body;
+    const validStatuses = ["pending", "preparing", "out-for-delivery", "delivered"];
+
+    if (!data.status) {
+        next({
+            status: 400,
+            message: "Order must include a status"
+        });
+    }
+
+    if (!validStatuses.includes(data.status)) {
+        // return res.status(400).json({
+        //     error: `Order status must be one of ${validStatuses.join(", ")}. Received: ${data.status}`
+        // });
+        return next({
+            status: 400,
+            message: `Order status must be one of ${validStatuses.join(", ")}. Received: ${data.status}`
+        });
+    }
+
+    next();
+}
+
+// Middleware to validate a property in the body
 function validateOrder(propertyName) {
     return function (req, res, next) {
         const { data = {} } = req.body;
-
-        // Check if the property is present
-        if (!data[propertyName] && propertyName !== "id") {
-            return next({
-                status: 400,
-                message: `Order must include a ${propertyName}`
-            });
+        if (!data[propertyName]) {
+            return next({ status: 400, message: `Order must include a ${propertyName}` });
         }
-
-        // Check status property, when present, contains a valid property
-        if (propertyName === "status") {
-            const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-            if (!validStatus.includes(data[propertyName])) {
-                return next({
-                    status: 400,
-                    // message: `Order must have a status of ${validStatus}`
-                    message: `Order status must be one of ${validStatus.join(", ")}. Received: ${data[propertyName]}`
-                });
-            }
-        }
-
-        return next(); // All validations passed
-
+        next(); // All validations passed
     };
 }
 
@@ -114,21 +121,6 @@ function validateDishes(req, res, next) {
 function createOrder(req, res) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
-    // Ensure status is provided and valid (already handled by validateOrderPost)
-    if (!status) {
-        return res.status(400).json({
-            error: "Order must include a valid status."
-        });
-    }
-
-    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-    if (!validStatus.includes(status)) {
-        return res.status(400).json({
-            error: `Order must include a valid status. Valid statuses are: ${validStatus.join(", ")}.`
-        });
-    }
-
-    // Create the order
     const newOrder = {
         id: nextId(),
         deliverTo,
@@ -136,14 +128,15 @@ function createOrder(req, res) {
         status,
         dishes
     };
-    dishes.push(newOrder);
+
+    orders.push(newOrder);
     res.status(201).json({ data: newOrder });
 }
 
 /*
   PUT, Update
 */
-function updateOrder(req, res, next) {
+function updateOrder(req, res) {
     const foundOrder = res.locals.orders;
     const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
@@ -154,7 +147,6 @@ function updateOrder(req, res, next) {
         });
     }
 
-    // Order id validation is handled by validateOrderPost middleware
     // Check if status is valid
     const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
     if (status && !validStatus.includes(status)) {
@@ -213,7 +205,7 @@ module.exports = {
     createOrder: [
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
-        validateOrder("status"),
+        validateStatus,
         validateOrder("dishes"),
         validateDishes,
         createOrder,
@@ -223,7 +215,7 @@ module.exports = {
         validateOrder("id"),
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
-        validateOrder("status"),
+        validateStatus,
         validateOrder("dishes"),
         validateDishes,
         updateOrder
