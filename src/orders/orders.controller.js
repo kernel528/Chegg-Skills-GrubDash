@@ -43,16 +43,48 @@ function readOrder(req, res) {
   POST
 */
 // Make sure POST body has required fields.
-function validateOrderPost(propertyName) {
+function validateOrderPost(propertyName, validateStatus = false) {
     return function (req, res, next) {
         const { data = {} } = req.body;
-        if (data[propertyName]) {
-            return next();
+
+        // Check if the property is present
+        if (!data[propertyName] && propertyName !== "id") {
+            return next({ status: 400, message: `Order must include a ${propertyName}` });
         }
-        next({ status: 400, message: `Order must include a ${propertyName}` });
+
+        // Check status property, when present, contains a valid property
+        if (validateStatus && propertyName === "status") {
+            const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
+            if (!validStatus.includes(data[propertyName])) {
+                return next({
+                    status: 400,
+                    message: `Order must have a status of ${validStatus}`
+                });
+            }
+        }
+
+        // Additional "id" property validation for update method
+        if (propertyName === "id") {
+            const { id } = data;
+            if (!id) {
+                return next({ status: 400, message: `Order must include an id` });
+            }
+
+            // Check to make sure the id in the body matches the route id --> This is only needed for updates
+            if (id !== req.params.orderId) {
+                return ({
+                    status: 400,
+                    message: `Order id does not match route id. Order: ${id}, Route: ${req.params.orderId}`
+                })
+            }
+        }
+
+        return next();
+
     };
 }
 
+//
 // Middleware to validate the dishes array
 function validateDishes(req, res, next) {
     const { data: { dishes } = {} } = req.body;
@@ -90,8 +122,20 @@ function validateDishes(req, res, next) {
     next(); // All validations passed
 }
 
+// Create a new order, with status property validation
 function createOrder(req, res) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+
+    // Ensure status is provided and valid
+    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
+    if (!status || !validStatus.includes(status)) {
+        return res.status(400).json({
+            // error: `Order must have a status of ${validStatus}`
+            error: `Order must include a valid status. Valid statuses are: ${validStatus.join(", ")}.`
+        });
+    }
+
+    // Create the order
     const newOrder = {
         id: nextId(),
         deliverTo,
@@ -107,21 +151,35 @@ function createOrder(req, res) {
   PUT, Update
 */
 function updateOrder(req, res, next) {
-    const { orderId } = req.params;
-    const foundOrder = orders.find((order) => order.id === orderId);
+    const foundOrder = res.locals.orders;
     const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
-    // Check if the id in the request body matches the orderId from the URL
-    if (id && id !== orderId) {
-        return res.status(400).json({ error: `Order id does not match route id. Order: ${id}, Route: ${orderId}` });
-    }
-
-    // Make sure status is not missing or empty
-    if (status === undefined || status === null) {
-        res.status(400).json({
-            error: "Order must have a status of pending, preparing, out-for-delivery, delivered"
+    // Order id validation is handled by validateOrderPost middleware
+    // Check if status is valid
+    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
+    if (status && !validStatus.includes(status)) {
+        return res.status(400).json({
+            error: `Order must have a status of one of ${validStatus}.`
         });
     }
+
+    //
+
+    // // Check if the id in the request body matches the dishId from the URL
+    // if (id && id !== req.params.orderId) {
+    //     return res.status(400).json({
+    //         // error: `Order id does not match route id. Order: ${id}, Route: ${req.params.id}`
+    //         error: `Order id does not match route id. Order: ${id}, Route: ${req.params.orderId}`
+    //     });
+    // }
+    //
+    // // Make sure status is not missing or empty
+    // if (status === undefined || status === null) {
+    //     return res.status(400).json({
+    //         error: "Order must have a status of pending, preparing, out-for-delivery, delivered"
+    //     });
+    // }
+    //
 
     // Check if the order status is "delivered", if so reject updates...
     if (foundOrder.status === "delivered") {
@@ -130,15 +188,16 @@ function updateOrder(req, res, next) {
         });
     }
 
-    // Ensure the status is valid, if provided...
-    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-    if (status && !validStatus.includes(status)) {
-        return res.status(400).json({
-            error: `Order must have a status of ${validStatus}.`
-        });
-    }
+    //
+    // // Ensure the status is valid, if provided...
+    // const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
+    // if (status && !validStatus.includes(status)) {
+    //     return res.status(400).json({
+    //         error: `Order must have a status of ${validStatus}.`
+    //     });
+    // }
 
-    // Validations pass, Update the Dish
+    // Validations pass, Update the Order
     foundOrder.deliverTo = deliverTo;
     foundOrder.mobileNumber = mobileNumber;
     foundOrder.status = status;
@@ -181,7 +240,7 @@ module.exports = {
     createOrder: [
         validateOrderPost("deliverTo"),
         validateOrderPost("mobileNumber"),
-        validateOrderPost("status"),
+        validateOrderPost("status", true),
         validateOrderPost("dishes"),
         validateDishes,
         createOrder,
@@ -191,7 +250,7 @@ module.exports = {
         validateOrderPost("id"),
         validateOrderPost("deliverTo"),
         validateOrderPost("mobileNumber"),
-        validateOrderPost("status"),
+        validateOrderPost("status", true),
         validateOrderPost("dishes"),
         validateDishes,
         updateOrder
