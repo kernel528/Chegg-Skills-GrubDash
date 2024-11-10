@@ -16,6 +16,12 @@ const listOrders = (req, res) => {
     res.json({ data: orders });
 };
 
+// Read handler /orders/:orderId
+function readOrder(req, res) {
+    const foundOrder = res.locals.orders;
+    res.status(200).json({data: foundOrder});
+}
+
 // Middleware to check if `orderId` exists
 function orderExists(req, res, next) {
     const { orderId } = req.params;
@@ -31,12 +37,6 @@ function orderExists(req, res, next) {
     // If the order exists, attach it to res.locals for further use...
     res.locals.orders = foundOrder; // Store the found Order ID for use in other handlers if needed
     return next();
-}
-
-// Read handler /orders/:orderId
-function readOrder(req, res) {
-    const foundOrder = res.locals.orders;
-    res.status(200).json({data: foundOrder});
 }
 
 /*
@@ -63,25 +63,6 @@ function validateOrderPost(propertyName, validateStatus = false) {
                     status: 400,
                     // message: `Order must have a status of ${validStatus}`
                     message: `Order status must be one of ${validStatus.join(", ")}. Received: ${data[propertyName]}`
-                });
-            }
-        }
-
-        // Additional "id" property validation for update method
-        if (propertyName === "id") {
-            const { id } = data;
-            if (!id) {
-                return next({
-                    status: 400,
-                    message: `Order must include an id`
-                });
-            }
-
-            // Check to make sure the id in the body matches the route id --> This is only needed for updates
-            if (id !== req.params.orderId) {
-                return next({
-                    status: 400,
-                    message: `Order id does not match route id. Order: ${id}, Route: ${req.params.orderId}`
                 });
             }
         }
@@ -133,6 +114,20 @@ function validateDishes(req, res, next) {
 function createOrder(req, res) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
+    // Ensure status is provided and valid (already handled by validateOrderPost)
+    if (!status) {
+        return res.status(400).json({
+            error: "Order must include a valid status."
+        });
+    }
+
+    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
+    if (!validStatus.includes(status)) {
+        return res.status(400).json({
+            error: `Order must include a valid status. Valid statuses are: ${validStatus.join(", ")}.`
+        });
+    }
+
     // Create the order
     const newOrder = {
         id: nextId(),
@@ -150,7 +145,14 @@ function createOrder(req, res) {
 */
 function updateOrder(req, res, next) {
     const foundOrder = res.locals.orders;
-    const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+    const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+
+    // Ensure id in the request body matches the orderId from the route
+    if (id && id !== req.params.orderId) {
+        return res.status(400).json({
+            error: `Order id does not match route id. Order: ${id}, Route: ${req.params.orderId}`
+        });
+    }
 
     // Order id validation is handled by validateOrderPost middleware
     // Check if status is valid
@@ -171,7 +173,7 @@ function updateOrder(req, res, next) {
     // Validations pass, Update the Order
     foundOrder.deliverTo = deliverTo;
     foundOrder.mobileNumber = mobileNumber;
-    foundOrder.status = status;
+    foundOrder.status = status || foundOrder.status;
     foundOrder.dishes = dishes;
 
     res.json({ data: foundOrder });
