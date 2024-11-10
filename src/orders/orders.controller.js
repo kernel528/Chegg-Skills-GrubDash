@@ -1,26 +1,10 @@
 const path = require("path");
+const orders = require(path.resolve("src/data/orders-data")); // Use the existing order data
+const nextId = require("../utils/nextId"); // Use this function to assign ID's when necessary
 
-// Use the existing order data
-const orders = require(path.resolve("src/data/orders-data"));
-
-// Use this function to assign ID's when necessary
-const nextId = require("../utils/nextId");
-
-// TODO: Implement the /orders handlers needed to make the tests pass
-
-/*
-  GET
+/* 
+  Middleware Functions
 */
-// List handler for /order (GET)
-const listOrders = (req, res) => {
-    res.json({ data: orders });
-};
-
-// Read handler /orders/:orderId
-function readOrder(req, res) {
-    const foundOrder = res.locals.orders;
-    res.status(200).json({data: foundOrder});
-}
 
 // Middleware to check if `orderId` exists
 function orderExists(req, res, next) {
@@ -46,6 +30,7 @@ function validateOrder(propertyName) {
         if (!data[propertyName]) {
             return next({ status: 400, message: `Order must include a ${propertyName}` });
         }
+
         next(); // All validations passed
     };
 }
@@ -63,9 +48,6 @@ function validateStatus(req, res, next) {
     }
 
     if (!validStatuses.includes(data.status)) {
-        // return res.status(400).json({
-        //     error: `Order status must be one of ${validStatuses.join(", ")}. Received: ${data.status}`
-        // });
         return next({
             status: 400,
             message: `Order status must be one of ${validStatuses.join(", ")}. Received: ${data.status}`
@@ -113,6 +95,20 @@ function validateDishes(req, res, next) {
 }
 
 /*
+  GET
+*/
+// List handler for /order (GET)
+const listOrders = (req, res) => {
+    res.json({ data: orders });
+};
+
+// Read handler /orders/:orderId
+function readOrder(req, res) {
+    const foundOrder = res.locals.orders;
+    res.status(200).json({data: foundOrder});
+}
+
+/*
    POST
 */
 // Create a new order, with status property validation
@@ -139,6 +135,7 @@ function updateOrder(req, res) {
     const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
     // Ensure id in the request body matches the orderId from the route
+    const orderId = foundOrder.id;
     if (id && id !== req.params.orderId) {
         return res.status(400).json({
             error: `Order id does not match route id. Order: ${id}, Route: ${req.params.orderId}`
@@ -204,17 +201,17 @@ module.exports = {
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
         validateStatus,
-        validateOrder("dishes"),
+        // validateOrder("dishes"),
         validateDishes,
         createOrder,
     ],
     updateOrder: [
         orderExists,
-        validateOrder("id"),
+        // validateOrder("id"),
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
         validateStatus,
-        validateOrder("dishes"),
+        // validateOrder("dishes"),
         validateDishes,
         updateOrder
     ],
