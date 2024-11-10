@@ -43,7 +43,7 @@ function orderExists(req, res, next) {
   POST
 */
 // Make sure POST body has required fields.
-function validateOrder(propertyName, validateStatus = false) {
+function validateOrder(propertyName) {
     return function (req, res, next) {
         const { data = {} } = req.body;
 
@@ -56,7 +56,7 @@ function validateOrder(propertyName, validateStatus = false) {
         }
 
         // Check status property, when present, contains a valid property
-        if (validateStatus && propertyName === "status") {
+        if (propertyName === "status") {
             const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
             if (!validStatus.includes(data[propertyName])) {
                 return next({
@@ -213,7 +213,7 @@ module.exports = {
     createOrder: [
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
-        validateOrder("status", true),
+        validateOrder("status"),
         validateOrder("dishes"),
         validateDishes,
         createOrder,
@@ -223,7 +223,7 @@ module.exports = {
         validateOrder("id"),
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
-        validateOrder("status", true),
+        validateOrder("status"),
         validateOrder("dishes"),
         validateDishes,
         updateOrder
