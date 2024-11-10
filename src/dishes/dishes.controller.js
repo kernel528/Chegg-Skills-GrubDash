@@ -56,6 +56,14 @@ function validateDishPost(propertyName) {
 // This handler will create the dish and respond with the newly created dish
 function createDish(req, res) {
     const { data: { name, description, price, image_url } = {} } = req.body;
+
+    // Make sure price is greater than 0 and is an integer/number. --> Can this be moved to a validatePrice handler?
+    if (typeof price !== "number" || price <= 0) {
+        return res.status(400).json({
+            error: "Dish must have a price that is an integer greater than 0."
+        });
+    }
+
     const newDish = {
         id: nextId(),
         name,
@@ -72,25 +80,32 @@ function createDish(req, res) {
 */
 function updateDish(req, res) {
     const foundDish = res.locals.dishes;
-    const { data: { name, description, price, image_url } = {} } = req.body;
+    const { data: { id, name, description, price, image_url } = {} } = req.body;
+
+    // // Check if the id in the request body matches the dishId from the URL
+    if (id && id !== req.params.dishId) {
+        return res.status(400).json({
+            error: `Dish id does not match route id. Dish: ${id}, Route: ${req.params.dishId}`
+        });
+    }
 
     // Check to make sure price exists
     if (price === undefined || price === null) {
-        res.status(400).json({
+        return res.status(400).json({
             error: "Dish must include a price."
         });
     }
 
     // Make sure price is greater than 0 and is an integer/number.
     if (typeof price !== "number" || price <= 0) {
-        res.status(400).json({
+        return res.status(400).json({
             error: "Dish must have a price that is an integer greater than 0."
         });
     }
 
     // Make sure image_url isn't missing
     if (image_url === undefined || image_url === null ) {
-        res.status(400).json({
+        return res.status(400).json({
             error: "Dish must include an image_url."
         });
     }
