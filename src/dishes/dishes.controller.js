@@ -83,11 +83,11 @@ function updateDish(req, res) {
     const { data: { id, name, description, price, image_url } = {} } = req.body;
 
     // // Check if the id in the request body matches the dishId from the URL
-    // if (id && id !== req.params.dishId) {
-    //     return res.status(400).json({
-    //         error: `Dish id does not match route id. Dish: ${id}, Route: ${req.params.dishId}`
-    //     });
-    // }
+    if (id && id !== req.params.dishId) {
+        return res.status(400).json({
+            error: `Dish id does not match route id. Dish: ${id}, Route: ${req.params.dishId}`
+        });
+    }
 
     // Check to make sure price exists
     if (price === undefined || price === null) {
