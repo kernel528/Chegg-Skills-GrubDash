@@ -43,7 +43,7 @@ function readDish(req, res) {
   POST
 */
 // Make sure POST body has required fields.
-function validateDishPost(propertyName) {
+function validateDish(propertyName) {
     return function (req, res, next) {
         const { data = {} } = req.body;
         if (data[propertyName]) {
@@ -124,17 +124,17 @@ module.exports = {
     listDishes,
     readDish: [dishExists, readDish],
     createDish: [
-        validateDishPost("name"),
-        validateDishPost("description"),
-        validateDishPost("price"),
-        validateDishPost("image_url"),
+        validateDish("name"),
+        validateDish("description"),
+        validateDish("price"),
+        validateDish("image_url"),
         createDish
     ],
     updateDish: [
-        validateDishPost("name"),
-        validateDishPost("description"),
-        validateDishPost("price"),
-        validateDishPost("image_url"),
+        validateDish("name"),
+        validateDish("description"),
+        validateDish("price"),
+        validateDish("image_url"),
         dishExists,
         updateDish
     ],
