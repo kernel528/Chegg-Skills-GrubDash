@@ -39,9 +39,16 @@ function orderExists(req, res, next) {
     return next();
 }
 
-/*
-  POST
-*/
+// Middleware to validate a property in the body
+function validateOrder(propertyName) {
+    return function (req, res, next) {
+        const { data = {} } = req.body;
+        if (!data[propertyName]) {
+            return next({ status: 400, message: `Order must include a ${propertyName}` });
+        }
+        next(); // All validations passed
+    };
+}
 
 // Middleware to validate the status property
 function validateStatus(req, res, next) {
@@ -68,18 +75,6 @@ function validateStatus(req, res, next) {
     next();
 }
 
-// Middleware to validate a property in the body
-function validateOrder(propertyName) {
-    return function (req, res, next) {
-        const { data = {} } = req.body;
-        if (!data[propertyName]) {
-            return next({ status: 400, message: `Order must include a ${propertyName}` });
-        }
-        next(); // All validations passed
-    };
-}
-
-//
 // Middleware to validate the dishes array
 function validateDishes(req, res, next) {
     const { data: { dishes } = {} } = req.body;
@@ -117,6 +112,9 @@ function validateDishes(req, res, next) {
     next(); // All validations passed
 }
 
+/*
+   POST
+*/
 // Create a new order, with status property validation
 function createOrder(req, res) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
@@ -134,7 +132,7 @@ function createOrder(req, res) {
 }
 
 /*
-  PUT, Update
+  PUT
 */
 function updateOrder(req, res) {
     const foundOrder = res.locals.orders;
