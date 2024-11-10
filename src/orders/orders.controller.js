@@ -43,7 +43,7 @@ function orderExists(req, res, next) {
   POST
 */
 // Make sure POST body has required fields.
-function validateOrderPost(propertyName, validateStatus = false) {
+function validateOrder(propertyName, validateStatus = false) {
     return function (req, res, next) {
         const { data = {} } = req.body;
 
@@ -211,20 +211,20 @@ module.exports = {
     listOrders,
     readOrder: [orderExists, readOrder],
     createOrder: [
-        validateOrderPost("deliverTo"),
-        validateOrderPost("mobileNumber"),
-        validateOrderPost("status", true),
-        validateOrderPost("dishes"),
+        validateOrder("deliverTo"),
+        validateOrder("mobileNumber"),
+        validateOrder("status", true),
+        validateOrder("dishes"),
         validateDishes,
         createOrder,
     ],
     updateOrder: [
         orderExists,
-        validateOrderPost("id"),
-        validateOrderPost("deliverTo"),
-        validateOrderPost("mobileNumber"),
-        validateOrderPost("status", true),
-        validateOrderPost("dishes"),
+        validateOrder("id"),
+        validateOrder("deliverTo"),
+        validateOrder("mobileNumber"),
+        validateOrder("status", true),
+        validateOrder("dishes"),
         validateDishes,
         updateOrder
     ],
