@@ -49,7 +49,10 @@ function validateOrderPost(propertyName, validateStatus = false) {
 
         // Check if the property is present
         if (!data[propertyName] && propertyName !== "id") {
-            return next({ status: 400, message: `Order must include a ${propertyName}` });
+            return next({
+                status: 400,
+                message: `Order must include a ${propertyName}`
+            });
         }
 
         // Check status property, when present, contains a valid property
@@ -58,7 +61,8 @@ function validateOrderPost(propertyName, validateStatus = false) {
             if (!validStatus.includes(data[propertyName])) {
                 return next({
                     status: 400,
-                    message: `Order must have a status of ${validStatus}`
+                    // message: `Order must have a status of ${validStatus}`
+                    message: `Order status must be one of ${validStatus.join(", ")}. Received: ${data[propertyName]}`
                 });
             }
         }
@@ -67,19 +71,22 @@ function validateOrderPost(propertyName, validateStatus = false) {
         if (propertyName === "id") {
             const { id } = data;
             if (!id) {
-                return next({ status: 400, message: `Order must include an id` });
+                return next({
+                    status: 400,
+                    message: `Order must include an id`
+                });
             }
 
             // Check to make sure the id in the body matches the route id --> This is only needed for updates
             if (id !== req.params.orderId) {
-                return ({
+                return next({
                     status: 400,
                     message: `Order id does not match route id. Order: ${id}, Route: ${req.params.orderId}`
-                })
+                });
             }
         }
 
-        return next();
+        return next(); // All validations passed
 
     };
 }
@@ -126,15 +133,6 @@ function validateDishes(req, res, next) {
 function createOrder(req, res) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
-    // Ensure status is provided and valid
-    const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-    if (!status || !validStatus.includes(status)) {
-        return res.status(400).json({
-            // error: `Order must have a status of ${validStatus}`
-            error: `Order must include a valid status. Valid statuses are: ${validStatus.join(", ")}.`
-        });
-    }
-
     // Create the order
     const newOrder = {
         id: nextId(),
@@ -152,7 +150,7 @@ function createOrder(req, res) {
 */
 function updateOrder(req, res, next) {
     const foundOrder = res.locals.orders;
-    const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+    const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
 
     // Order id validation is handled by validateOrderPost middleware
     // Check if status is valid
@@ -163,39 +161,12 @@ function updateOrder(req, res, next) {
         });
     }
 
-    //
-
-    // // Check if the id in the request body matches the dishId from the URL
-    // if (id && id !== req.params.orderId) {
-    //     return res.status(400).json({
-    //         // error: `Order id does not match route id. Order: ${id}, Route: ${req.params.id}`
-    //         error: `Order id does not match route id. Order: ${id}, Route: ${req.params.orderId}`
-    //     });
-    // }
-    //
-    // // Make sure status is not missing or empty
-    // if (status === undefined || status === null) {
-    //     return res.status(400).json({
-    //         error: "Order must have a status of pending, preparing, out-for-delivery, delivered"
-    //     });
-    // }
-    //
-
     // Check if the order status is "delivered", if so reject updates...
     if (foundOrder.status === "delivered") {
         return res.status(400).json({
             error: `A delivered order cannot be changed.`
         });
     }
-
-    //
-    // // Ensure the status is valid, if provided...
-    // const validStatus = ["pending", "preparing", "out-for-delivery", "delivered"];
-    // if (status && !validStatus.includes(status)) {
-    //     return res.status(400).json({
-    //         error: `Order must have a status of ${validStatus}.`
-    //     });
-    // }
 
     // Validations pass, Update the Order
     foundOrder.deliverTo = deliverTo;
