@@ -206,8 +206,6 @@ module.exports = {
     createOrder: [
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
-        // validateOrder("status"),
-        // validateStatus,
         validateDishes,
         createOrder,
     ],
