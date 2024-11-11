@@ -12,6 +12,7 @@ function orderExists(req, res, next) {
     const foundOrder = orders.find((order) => order.id === orderId);
 
     // Check if there is no matching order, then respond with 404 and error message:
+    // Review Status:  COMPLETE
     if (!foundOrder) {
         return res.status(404).json({
             error: `Order does not exist ${orderId}.`
@@ -26,12 +27,17 @@ function orderExists(req, res, next) {
 // Middleware to validate a property in the body
 function validateOrder(propertyName) {
     return function (req, res, next) {
-        const { data = {} } = req.body;
-        if (!data[propertyName]) {
-            return next({ status: 400, message: `Order must include a ${propertyName}` });
+        const { data: orderData = {} } = req.body;
+        const orderStatus = orderData.status;
+
+        if (orderData[propertyName]) {
+            if (orderStatus && (!orderStatus || orderStatus === "")) {
+                return next({ status: 400, message: `Order must have a status of pending, preparing, out-for-delivery, delivered` });
+            }
+            return next();
         }
 
-        next(); // All validations passed
+        next({ status: 400, message: `Order must include a ${propertyName}` }); // --> This is where the status validation was failing.
     };
 }
 
@@ -43,7 +49,7 @@ function validateStatus(req, res, next) {
     if (!data.status) {
         next({
             status: 400,
-            message: "Order must include a status"
+            message: "Order must include a status"  // --> This is where the status validation was failing.
         });
     }
 
@@ -201,17 +207,14 @@ module.exports = {
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
         validateStatus,
-        // validateOrder("dishes"),
         validateDishes,
         createOrder,
     ],
     updateOrder: [
         orderExists,
-        // validateOrder("id"),
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
         validateStatus,
-        // validateOrder("dishes"),
         validateDishes,
         updateOrder
     ],

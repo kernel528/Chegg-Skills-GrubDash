@@ -39,13 +39,13 @@ describe("orders router", () => {
           data: {
             deliverTo: expectedDeliverTo,
             mobileNumber: "(202) 456-1111",
+            status: "pending",
             dishes: [
               {
                 id: "9",
                 name: "Falafel and tahini bagel",
                 description: "A warm bagel filled with falafel and tahini",
                 image_url: "some-valid-url",
-                status: "pending",
                 price: 6,
                 quantity: 1,
               },
