@@ -49,7 +49,7 @@ function validateStatus(req, res, next) {
     if (!data.status) {
         next({
             status: 400,
-            message: "Order must include a status"  // --> This is where the status validation was failing.
+            message: "Order must include aaa status"  // --> This is where the status validation was failing.
         });
     }
 
@@ -119,13 +119,13 @@ function readOrder(req, res) {
 */
 // Create a new order, with status property validation
 function createOrder(req, res) {
-    const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+    // const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
+    const { data: { deliverTo, mobileNumber, dishes } = {} } = req.body;
 
     const newOrder = {
         id: nextId(),
         deliverTo,
         mobileNumber,
-        status,
         dishes
     };
 
@@ -206,7 +206,6 @@ module.exports = {
     createOrder: [
         validateOrder("deliverTo"),
         validateOrder("mobileNumber"),
-        validateStatus,
         validateDishes,
         createOrder,
     ],
