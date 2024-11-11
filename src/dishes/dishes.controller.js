@@ -1,20 +1,10 @@
 const path = require("path");
-
-// Use the existing dishes data
-const dishes = require(path.resolve("src/data/dishes-data"));
-
-// Use this function to assign ID's when necessary
-const nextId = require("../utils/nextId");
-
-// TODO: Implement the /dishes handlers needed to make the tests pass
+const dishes = require(path.resolve("src/data/dishes-data")); // Use the existing dishes data
+const nextId = require("../utils/nextId"); // Use this function to assign ID's when necessary
 
 /*
-  GET
+  Middleware Functions
 */
-// List handler for /dishes (GET)
-const listDishes = (req, res) => {
-    res.json({ data: dishes });
-};
 
 // Middleware to check if `dishId` exists and matches the route id.
 // If `dishId` does not exist, send 404 response with a message containing `dishId`
@@ -33,15 +23,6 @@ function dishExists(req, res, next) {
         return next();
 }
 
-// Read handler /dishes/:dishId
-function readDish(req, res) {
-    const foundDish = res.locals.dishes;
-    res.status(200).json({data: foundDish});
-}
-
-/*
-  POST
-*/
 // Make sure POST body has required fields.
 function validateDish(propertyName) {
     return function (req, res, next) {
@@ -53,7 +34,25 @@ function validateDish(propertyName) {
     };
 }
 
-// This handler will create the dish and respond with the newly created dish
+/*
+  GET
+*/
+// List handler for /dishes (GET)
+const listDishes = (req, res) => {
+    res.json({ data: dishes });
+};
+
+// Read handler /dishes/:dishId
+function readDish(req, res) {
+    const foundDish = res.locals.dishes;
+    res.status(200).json({data: foundDish});
+}
+
+/*
+  POST
+*/
+
+// Create the dish, validating price is a number and > 0, respond with the newly created dish
 function createDish(req, res) {
     const { data: { name, description, price, image_url } = {} } = req.body;
 
@@ -76,13 +75,14 @@ function createDish(req, res) {
 }
 
 /*
-  PUT, Update
+  PUT
 */
+// Update the dish, validate dish id matches route id in url, validate price and image_url exists
 function updateDish(req, res) {
     const foundDish = res.locals.dishes;
     const { data: { id, name, description, price, image_url } = {} } = req.body;
 
-    // // Check if the id in the request body matches the dishId from the URL
+    // Check if the id in the request body matches the dishId from the URL
     if (id && id !== req.params.dishId) {
         return res.status(400).json({
             error: `Dish id does not match route id. Dish: ${id}, Route: ${req.params.dishId}`
