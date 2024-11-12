@@ -13,7 +13,6 @@ function orderExists(req, res, next) {
 
     // Check if there is no matching order, then respond with 404 and error message:
     if (!foundOrder) {
-
         return next({
             status: 404,
             message: `The order ${orderId} does not exist.`,
@@ -26,19 +25,15 @@ function orderExists(req, res, next) {
 }
 
 // Middleware to validate a property in the body
-function validateOrder(propertyName) {
+function validateOrderProperty(propertyName) {
     return function (req, res, next) {
-        const { data: orderData = {} } = req.body;
-        const orderStatus = orderData.status;
-
-        if (orderData[propertyName]) {
-            if (orderStatus && (!orderStatus || orderStatus === "")) {
-                return next({ status: 400, message: `Order must have a status of pending, preparing, out-for-delivery, delivered` });
-            }
-            return next();
+        const { data } = req.body;
+        if (!data || !data[propertyName]) {
+            return next({
+                status: 400,
+                message: `Order must include a ${propertyName}` });
         }
-
-        next({ status: 400, message: `Order must include a ${propertyName}` }); // --> This is where the status validation was failing.
+        return next();
     };
 }
 
@@ -47,10 +42,10 @@ function validateStatus(req, res, next) {
     const { data = {} } = req.body;
     const validStatuses = ["pending", "preparing", "out-for-delivery", "delivered"];
 
-    if (!data.status) {
-        next({
+    if (!data || !data.status) {
+        return next({
             status: 400,
-            message: "Order must include aaa status"  // --> This is where the status validation was failing.
+            message: "Order must include a status"
         });
     }
 
@@ -61,7 +56,7 @@ function validateStatus(req, res, next) {
         });
     }
 
-    next();
+    return next();
 }
 
 // Middleware to validate the dishes array
@@ -205,15 +200,15 @@ module.exports = {
     listOrders,
     readOrder: [orderExists, readOrder],
     createOrder: [
-        validateOrder("deliverTo"),
-        validateOrder("mobileNumber"),
+        validateOrderProperty("deliverTo"),
+        validateOrderProperty("mobileNumber"),
         validateDishes,
         createOrder,
     ],
     updateOrder: [
         orderExists,
-        validateOrder("deliverTo"),
-        validateOrder("mobileNumber"),
+        validateOrderProperty("deliverTo"),
+        validateOrderProperty("mobileNumber"),
         validateStatus,
         validateDishes,
         updateOrder
