@@ -2,9 +2,7 @@ const path = require("path");
 const dishes = require(path.resolve("src/data/dishes-data")); // Use the existing dishes data
 const nextId = require("../utils/nextId"); // Use this function to assign ID's when necessary
 
-/*
-  Middleware Functions
-*/
+/*   *** Middleware Functions ***   */
 
 // Middleware to check if `dishId` exists and matches the route id.
 // If `dishId` does not exist, send 404 response with a message containing `dishId`
@@ -20,7 +18,8 @@ function dishExists(req, res, next) {
 
     // If the dish exists, attach it to res.locals for further use...
     res.locals.dishes = foundDish; // Store the found Dish ID for use in other handlers if needed
-        return next();
+
+    return next();
 }
 
 // Make sure POST body has required fields.
@@ -30,27 +29,28 @@ function validateDish(propertyName) {
         if (data[propertyName]) {
             return next();
         }
-        next({ status: 400, message: `Dish must include a ${propertyName}` });
+
+        return next({
+            status: 400,
+            message: `Dish must include a ${propertyName}`
+        });
     };
 }
 
-/*
-  GET
-*/
+/*   *** GET ***   */
+
 // List handler for /dishes (GET)
 const listDishes = (req, res) => {
-    res.json({ data: dishes });
+    return res.json({ data: dishes });
 };
 
 // Read handler /dishes/:dishId
 function readDish(req, res) {
     const foundDish = res.locals.dishes;
-    res.status(200).json({data: foundDish});
+    return res.status(200).json({data: foundDish});
 }
 
-/*
-  POST
-*/
+/*   *** POST ***    */
 
 // Create the dish, validating price is a number and > 0, respond with the newly created dish
 function createDish(req, res) {
@@ -70,13 +70,15 @@ function createDish(req, res) {
         price,
         image_url,
     };
+
     dishes.push(newDish);
-    res.status(201).json({ data: newDish });
+    return res.status(201).json({
+        data: newDish
+    });
 }
 
-/*
-  PUT
-*/
+/*   *** PUT ***   */
+
 // Update the dish, validate dish id matches route id in url, validate price and image_url exists
 function updateDish(req, res) {
     const foundDish = res.locals.dishes;

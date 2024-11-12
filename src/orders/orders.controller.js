@@ -2,7 +2,7 @@ const path = require("path");
 const orders = require(path.resolve("src/data/orders-data")); // Use the existing order data
 const nextId = require("../utils/nextId"); // Use this function to assign ID's when necessary
 
-/*   Middleware Functions   */
+/*   *** Middleware Functions ***   */
 
 // Middleware to check if `orderId` exists
 function orderExists(req, res, next) {
@@ -86,7 +86,7 @@ function validateDishes(req, res, next) {
     return next(); // All validations passed
 }
 
-/*   GET   */
+/*  *** GET ***   */
 
 // List handler for /order (GET)
 const listOrders = (req, res) => {
@@ -99,7 +99,7 @@ function readOrder(req, res) {
     res.status(200).json({data: foundOrder});
 }
 
-/*   POST   */
+/*  *** POST ***  */
 
 // Create a new order, with status property validation
 function createOrder(req, res) {
@@ -114,10 +114,10 @@ function createOrder(req, res) {
     };
 
     orders.push(newOrder);
-    res.status(201).json({ data: newOrder });
+    return res.status(201).json({ data: newOrder });
 }
 
-/*   PUT   */
+/*   *** PUT ***   */
 function updateOrder(req, res) {
     const foundOrder = res.locals.orders;
     const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
@@ -154,7 +154,7 @@ function updateOrder(req, res) {
     res.json({ data: foundOrder });
 }
 
-/*   Delete   */
+/*   *** Delete ***   */
 function deleteOrder(req, res) {
     const { orderId } = req.params;
     const foundOrder = orders.find((order) => order.id === orderId);
