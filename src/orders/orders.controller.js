@@ -2,9 +2,7 @@ const path = require("path");
 const orders = require(path.resolve("src/data/orders-data")); // Use the existing order data
 const nextId = require("../utils/nextId"); // Use this function to assign ID's when necessary
 
-/* 
-  Middleware Functions
-*/
+/*   Middleware Functions   */
 
 // Middleware to check if `orderId` exists
 function orderExists(req, res, next) {
@@ -78,27 +76,18 @@ function validateDishes(req, res, next) {
         const { quantity } = dishes[i];
 
         // Validation: Check if quantity is missing
-        if (quantity === undefined) {
-            return next({ status: 400, message: `dish ${i} must have a quantity that is an integer greater than 0.` });
-        }
-
-        // Validation: Check if quantity is zero or less
-        if (quantity <= 0) {
-            return next({ status: 400, message: `dish ${i} must have a quantity that is an integer greater than 0.` });
-        }
-
-        // Validation: Check if quantity is not an integer
-        if (!Number.isInteger(quantity)) {
-            return next({ status: 400, message: `dish ${i} must have a quantity that is an integer greater than 0.` });
+        if (quantity === undefined || quantity <= 0 || !Number.isInteger(quantity)) {
+            return next({
+                status: 400,
+                message: `dish ${i} must have a quantity that is an integer greater than 0.` });
         }
     }
 
-    next(); // All validations passed
+    return next(); // All validations passed
 }
 
-/*
-  GET
-*/
+/*   GET   */
+
 // List handler for /order (GET)
 const listOrders = (req, res) => {
     res.json({ data: orders });
@@ -110,9 +99,8 @@ function readOrder(req, res) {
     res.status(200).json({data: foundOrder});
 }
 
-/*
-   POST
-*/
+/*   POST   */
+
 // Create a new order, with status property validation
 function createOrder(req, res) {
     // const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
@@ -129,9 +117,7 @@ function createOrder(req, res) {
     res.status(201).json({ data: newOrder });
 }
 
-/*
-  PUT
-*/
+/*   PUT   */
 function updateOrder(req, res) {
     const foundOrder = res.locals.orders;
     const { data: { id, deliverTo, mobileNumber, status, dishes } = {} } = req.body;
@@ -168,9 +154,7 @@ function updateOrder(req, res) {
     res.json({ data: foundOrder });
 }
 
-/*
-  Delete
-*/
+/*   Delete   */
 function deleteOrder(req, res) {
     const { orderId } = req.params;
     const foundOrder = orders.find((order) => order.id === orderId);
