@@ -87,7 +87,6 @@ function validateDishes(req, res, next) {
 }
 
 /*  *** GET ***   */
-
 // List handler for /order (GET)
 const listOrders = (req, res) => {
     res.json({ data: orders });
@@ -100,7 +99,6 @@ function readOrder(req, res) {
 }
 
 /*  *** POST ***  */
-
 // Create a new order, with status property validation
 function createOrder(req, res) {
     // const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body;
@@ -155,7 +153,8 @@ function updateOrder(req, res) {
 }
 
 /*   *** Delete ***   */
-function deleteOrder(req, res) {
+function deleteOrder(req, res, next) {
+
     const { orderId } = req.params;
     const foundOrder = orders.find((order) => order.id === orderId);
 

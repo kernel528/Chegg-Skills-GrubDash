@@ -5,11 +5,11 @@ const nextId = require("../utils/nextId"); // Use this function to assign ID's w
 /*   *** Middleware Functions ***   */
 
 // Middleware to check if `dishId` exists and matches the route id.
-// If `dishId` does not exist, send 404 response with a message containing `dishId`
 function dishExists(req, res, next) {
     const { dishId } = req.params;
     const foundDish = dishes.find((dish) => dish.id === dishId);
 
+    // If `dishId` does not exist, send 404 response with a message containing `dishId`
     if (!foundDish) {
         return res.status(404).json({
             error: `Dish does not exist ${dishId}.`
@@ -22,7 +22,7 @@ function dishExists(req, res, next) {
     return next();
 }
 
-// Make sure POST body has required fields.
+// Middleware to make sure POST body has required fields.
 function validateDish(propertyName) {
     return function (req, res, next) {
         const { data = {} } = req.body;
@@ -38,7 +38,6 @@ function validateDish(propertyName) {
 }
 
 /*   *** GET ***   */
-
 // List handler for /dishes (GET)
 const listDishes = (req, res) => {
     return res.json({ data: dishes });
@@ -51,7 +50,6 @@ function readDish(req, res) {
 }
 
 /*   *** POST ***    */
-
 // Create the dish, validating price is a number and > 0, respond with the newly created dish
 function createDish(req, res) {
     const { data: { name, description, price, image_url } = {} } = req.body;
@@ -78,7 +76,6 @@ function createDish(req, res) {
 }
 
 /*   *** PUT ***   */
-
 // Update the dish, validate dish id matches route id in url, validate price and image_url exists
 function updateDish(req, res) {
     const foundDish = res.locals.dishes;
