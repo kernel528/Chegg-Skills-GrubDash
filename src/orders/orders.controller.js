@@ -12,10 +12,11 @@ function orderExists(req, res, next) {
     const foundOrder = orders.find((order) => order.id === orderId);
 
     // Check if there is no matching order, then respond with 404 and error message:
-    // Review Status:  COMPLETE
     if (!foundOrder) {
-        return res.status(404).json({
-            error: `Order does not exist ${orderId}.`
+
+        return next({
+            status: 404,
+            message: `The order ${orderId} does not exist.`,
         });
     }
 
