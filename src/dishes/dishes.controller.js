@@ -22,19 +22,35 @@ function dishExists(req, res, next) {
     return next();
 }
 
-// Middleware to make sure POST body has required fields.
-function validateDish(propertyName) {
-    return function (req, res, next) {
-        const { data = {} } = req.body;
-        if (data[propertyName]) {
-            return next();
-        }
+function validateName(req, res, next) {
+    const { data = {} } = req.body;
+    if (data.name) {
+        return next();
+    }
+    next({ status: 400, message: "Dish must include a name" });
+}
 
-        return next({
-            status: 400,
-            message: `Dish must include a ${propertyName}`
-        });
-    };
+function validateDescription(req, res, next) {
+    const { data = {} } = req.body;
+    if (data.description) {
+        return next();
+    }
+    next({ status: 400, message: "Dish must include a description" });
+}
+
+function validatePrice(req, res, next) {
+    const { data = {} } = req.body;
+    if (data.price) {
+        return next();
+    }
+    next({ status: 400, message: "Dish must include a price" });
+}
+function validateImageUrl(req, res, next) {
+    const { data = {} } = req.body;
+    if (data.image_url) {
+        return next();
+    }
+    next({ status: 400, message: "Dish must include an image_url" });
 }
 
 /*   *** GET ***   */
@@ -123,17 +139,17 @@ module.exports = {
     listDishes,
     readDish: [dishExists, readDish],
     createDish: [
-        validateDish("name"),
-        validateDish("description"),
-        validateDish("price"),
-        validateDish("image_url"),
+        validateName,
+        validateDescription,
+        validatePrice,
+        validateImageUrl,
         createDish
     ],
     updateDish: [
-        validateDish("name"),
-        validateDish("description"),
-        validateDish("price"),
-        validateDish("image_url"),
+        validateName,
+        validateDescription,
+        validatePrice,
+        validateImageUrl,
         dishExists,
         updateDish
     ],
